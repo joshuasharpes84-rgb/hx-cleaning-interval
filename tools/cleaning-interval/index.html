@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cleaning Interval &amp; Bundle Life | Sharpes Process Engineering</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --navy:#0F172A; --blue:#2563EB; --blue-lt:#EFF6FF; --steel:#334155; --muted:#64748B; --border:#E2E8F0;
+            --bg:#F8FAFC; --white:#FFF; --r:8px; --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.06);
+            --fall:#7C3AED; --lin:#D97706; --asym:#2563EB; --ok:#16A34A; --warn:#D97706; --fail:#DC2626; }
+    body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif; font-size:14px; line-height:1.55; color:var(--steel); background:var(--bg); }
+    .container { max-width:1200px; margin:0 auto; padding:0 24px; }
+    .hero { background:var(--navy); padding:32px 0 26px; color:#fff; }
+    .eyebrow { font-size:12px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:#60A5FA; margin-bottom:8px; }
+    .hero h1 { font-size:28px; font-weight:800; margin-bottom:8px; letter-spacing:-.4px; }
+    .hero p { font-size:14px; color:#CBD5E1; max-width:860px; } .hero a { color:#93C5FD; }
+    main { padding:24px 0 40px; }
+    .kpis { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:16px; }
+    .kpi { background:#fff; border:1px solid var(--border); border-radius:var(--r); padding:10px 12px; box-shadow:var(--shadow); }
+    .kpi .k { font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); }
+    .kpi .v { font-size:21px; font-weight:800; color:var(--navy); font-family:"Courier New",monospace; }
+    .kpi .s { font-size:11px; color:var(--muted); line-height:1.4; }
+    .card { background:#fff; border:1px solid var(--border); border-radius:var(--r); padding:14px 16px; box-shadow:var(--shadow); margin-bottom:16px; }
+    .card h2 { font-size:15px; color:var(--navy); margin-bottom:4px; display:flex; align-items:baseline; gap:10px; }
+    .card h2 .tag { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:#fff; background:var(--blue); padding:2px 7px; border-radius:10px; }
+    .card .sub { font-size:12px; color:var(--muted); margin-bottom:10px; }
+    .two { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .row { display:flex; align-items:center; gap:8px; margin-bottom:7px; }
+    .lbl { font-size:12px; color:var(--muted); flex:1; line-height:1.3; }
+    .row input, .row select { width:120px; font-size:12px; padding:5px 7px; border:1px solid var(--border); border-radius:6px; color:var(--navy); font-family:"Courier New",monospace; background:#fff; }
+    .note { font-size:11px; color:var(--muted); font-style:italic; margin:-2px 0 8px; line-height:1.45; }
+    .btn { font-size:12px; font-weight:600; color:var(--blue); background:#fff; border:1px solid var(--border); border-radius:6px; padding:6px 11px; cursor:pointer; }
+    .btn:hover { background:var(--bg); } .btn.primary { background:var(--blue); color:#fff; border-color:var(--blue); }
+    .btns { display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin:8px 0; }
+    .chips { display:flex; gap:12px; font-size:12px; color:var(--muted); flex-wrap:wrap; }
+    /* spreadsheet */
+    .gridwrap { max-height:340px; overflow:auto; border:1px solid var(--border); border-radius:6px; }
+    table.grid { border-collapse:collapse; font-size:12px; width:100%; }
+    table.grid th { position:sticky; top:0; background:#F1F5F9; color:var(--navy); font-size:11px; padding:5px 6px; border:1px solid var(--border); white-space:nowrap; z-index:1; }
+    table.grid td { border:1px solid var(--border); padding:0; }
+    table.grid td.rn { background:#F8FAFC; color:var(--muted); text-align:center; font-size:10.5px; width:34px; }
+    table.grid td.dd { background:#F8FAFC; color:var(--muted); text-align:right; padding:0 6px; font-family:"Courier New",monospace; }
+    table.grid input { width:100%; min-width:78px; border:0; padding:4px 6px; font-family:"Courier New",monospace; font-size:12px; color:var(--navy); background:transparent; }
+    table.grid input:focus { outline:2px solid var(--blue); background:var(--blue-lt); }
+    .hidecol { display:none; }
+    /* trends */
+    table.tr { width:100%; border-collapse:collapse; font-size:12.5px; }
+    table.tr th { font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); text-align:right; padding:6px 8px; border-bottom:1px solid var(--border); }
+    table.tr th:first-child, table.tr td:first-child { text-align:left; }
+    table.tr td { padding:7px 8px; border-bottom:1px solid var(--border); text-align:right; font-family:"Courier New",monospace; color:var(--navy); white-space:nowrap; }
+    table.tr td.nm { font-family:inherit; font-weight:700; }
+    table.tr tr.pred td { background:#F5F3FF; }
+    table.tr tr.det td { background:#FAFAFA; white-space:normal; font-family:inherit; color:var(--steel); text-align:left; padding:10px 14px 12px; }
+    .eqn { font-family:"Courier New",monospace; background:var(--blue-lt); color:var(--navy); padding:4px 8px; border-radius:4px; display:inline-block; margin:2px 0 6px; }
+    .pgrid { display:flex; flex-wrap:wrap; gap:10px; margin-top:6px; align-items:center; }
+    .pgrid label { font-size:11.5px; color:var(--muted); display:flex; gap:6px; align-items:center; }
+    .pgrid input { width:110px; font-family:"Courier New",monospace; font-size:12px; padding:4px 6px; border:1px solid var(--border); border-radius:6px; }
+    .toggle { cursor:pointer; color:var(--blue); font-size:11px; font-family:inherit; background:none; border:0; }
+    .role { font-size:9.5px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; padding:1px 6px; border-radius:8px; margin-left:6px; }
+    .role.p { background:#EDE9FE; color:var(--fall); } .role.b { background:#F1F5F9; color:var(--muted); }
+    .charts { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .chart { background:#fff; border:1px solid var(--border); border-radius:var(--r); padding:12px 14px 8px; box-shadow:var(--shadow); }
+    .chart h4 { font-size:12.5px; color:var(--navy); } .chart p { font-size:11px; color:var(--muted); margin-bottom:6px; }
+    .cv { position:relative; height:240px; }
+    .bar { height:12px; background:#E2E8F0; border-radius:6px; overflow:hidden; margin:6px 0 4px; }
+    .bar > div { height:100%; background:linear-gradient(90deg,#16A34A,#D97706 70%,#DC2626); }
+    .state { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:8px; }
+    .state div { font-size:11px; color:var(--muted); } .state b { display:block; font-size:16px; color:var(--navy); font-family:"Courier New",monospace; }
+    .msg { font-size:12px; padding:8px 12px; border-radius:6px; margin-bottom:10px; }
+    .msg.w { background:#FFF8E1; border:1px solid #F9A825; color:#6D4C00; } .msg.e { background:#FEF2F2; border:1px solid #FCA5A5; color:#991B1B; }
+    details.sec { margin-bottom:10px; } details.sec > summary { cursor:pointer; font-size:13px; font-weight:700; color:var(--navy); padding:10px 14px; background:#fff; border:1px solid var(--border); border-radius:var(--r); list-style:none; }
+    details.sec > summary::before { content:"▸ "; color:var(--muted); } details.sec[open] > summary::before { content:"▾ "; }
+    details.sec > .body { padding:12px 14px 4px; background:#fff; border:1px solid var(--border); border-top:0; border-radius:0 0 var(--r) var(--r); }
+    .sec-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+    .chk { display:grid; grid-template-columns:22px 180px 1fr; gap:8px; font-size:12px; padding:6px 0; border-bottom:1px solid var(--border); }
+    .st { font-weight:800; } .st.ok { color:var(--ok); } .st.warn { color:var(--warn); } .st.fail { color:var(--fail); } .st.info { color:var(--muted); }
+    .insight p { font-size:12.5px; margin-bottom:6px; }
+    footer { font-size:11px; color:var(--muted); text-align:center; padding:10px 0 30px; }
+    @media (max-width:980px) { .kpis, .state { grid-template-columns:1fr 1fr; } .two, .charts, .sec-grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+<header class="hero"><div class="container">
+  <div class="eyebrow">Heat Exchanger Fouling · Operations Tool</div>
+  <h1>Cleaning Interval &amp; Bundle Life</h1>
+  <p>Cooling-water cooler on temperature control: as CaCO₃ scale builds, the controller opens the water valve until it runs out.
+     Your logged data projects <b>when that happens</b> (with a confidence cone), what cleaning on that schedule costs, and how many
+     hydroblast cycles the carbon-steel bundle survives. Method, equations and sources: <a href="https://github.com/joshuasharpes84-rgb/hx-cleaning-interval#readme" target="_blank" rel="noopener">README.md</a>.</p>
+</div></header>
+
+<main><div class="container">
+  <div id="msgs"></div>
+  <div class="kpis">
+    <div class="kpi"><div class="k">Clean by (predicted)</div><div class="v" id="k1">–</div><div class="s" id="k1s"></div></div>
+    <div class="kpi"><div class="k">Bounds (linear … asymptotic)</div><div class="v" id="k2">–</div><div class="s" id="k2s"></div></div>
+    <div class="kpi"><div class="k">Tube wall used</div><div class="v" id="k3">–</div><div class="s" id="k3s"></div></div>
+    <div class="kpi"><div class="k">Cleanings left on this bundle</div><div class="v" id="k4">–</div><div class="s" id="k4s"></div></div>
+  </div>
+
+  <!-- ================= 1. PLANT DATA ================= -->
+  <div class="card">
+    <h2><span class="tag">1</span> Plant data — current run since the last cleaning</h2>
+    <div class="sub">Type, paste from Excel (Ctrl+V into any cell fills from there), or upload a CSV/XLSX. Give either a <b>Date</b> or a <b>Day</b> — dates are converted to days from the last-cleaning date in section 2 (or the first row).</div>
+    <div class="chips">
+      <label><input type="checkbox" class="optcol" data-col="mp"> Process flow</label>
+      <label><input type="checkbox" class="optcol" data-col="mw"> CW flow (metered)</label>
+      <label><input type="checkbox" class="optcol" data-col="valve" checked> CW valve %</label>
+    </div>
+    <div class="btns">
+      <button class="btn primary" id="analyze">Analyze</button>
+      <label class="btn">Upload CSV / XLSX<input type="file" id="upload" accept=".csv,.tsv,.txt,.xlsx,.xls" hidden></label>
+      <button class="btn" id="template">Download template</button>
+      <button class="btn" id="addrows">+10 rows</button>
+      <button class="btn" id="clear">Clear</button>
+      <button class="btn" id="demo">Load literature-based demo</button>
+      <span class="note" style="margin:0" id="gridinfo"></span>
+    </div>
+    <div class="gridwrap"><table class="grid" id="grid"></table></div>
+  </div>
+
+  <!-- ================= 2. CURRENT CYCLE ================= -->
+  <div class="two">
+    <div class="card">
+      <h2><span class="tag">2</span> Current cycle &amp; bundle</h2>
+      <div class="row"><span class="lbl">Last cleaning date (day 0 of this run)</span><input type="date" id="lastClean"></div>
+      <div class="row"><span class="lbl">Bundle in service, years</span><input type="number" id="ageYr" value="3" step="0.5"></div>
+      <div class="row"><span class="lbl">Hydroblast cleanings to date</span><input type="number" id="nClean" value="4" step="1"></div>
+      <div class="bar"><div id="wallbar" style="width:0%"></div></div>
+      <div class="note" id="wallnote" style="margin:0"></div>
+      <div class="state">
+        <div>Average penetration<b id="s_avg">–</b></div>
+        <div>Deepest pit (theory)<b id="s_pit">–</b></div>
+        <div>Pit margin left<b id="s_left">–</b></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2><span class="tag">3</span> Projection basis &amp; limits</h2>
+      <div class="sub">Blank = taken from your data (median of the log).</div>
+      <div class="row"><span class="lbl">Process flow, kg/s</span><input type="number" id="b_mp" placeholder="from data"></div>
+      <div class="row"><span class="lbl">Process inlet, °C</span><input type="number" id="b_tpi" placeholder="from data"></div>
+      <div class="row"><span class="lbl">Process outlet setpoint, °C</span><input type="number" id="b_tset" placeholder="from data"></div>
+      <div class="row"><span class="lbl">CW supply, °C</span><input type="number" id="b_twi" placeholder="from data"></div>
+      <div class="row"><span class="lbl">Confidence level for the cone</span><select id="conf"><option value="0.8">80 %</option><option value="0.9">90 %</option><option value="0.95" selected>95 %</option><option value="0.99">99 %</option></select></div>
+    </div>
+  </div>
+
+  <!-- ================= RESULTS ================= -->
+  <div class="card">
+    <h2>Fouling trends — sorted by which needs cleaning soonest</h2>
+    <div class="sub"><b>Falling rate</b> is the prediction (fitted to your data, with a confidence cone). <b>Linear</b> and <b>asymptotic</b> are the bounds: fouling that never slows, and fouling that levels off. Open a row to see its equation and edit its parameters.</div>
+    <table class="tr" id="trends"></table>
+  </div>
+
+  <div class="card">
+    <h2>Temperature / shear-coupled fouling sensitivity <span class="tag">Scenario</span></h2>
+    <div class="sub">Scenario only, not a plant prediction. All three trends use one shared clean-U basis and the same calculated fouling threshold. The asymptote is calibrated to its fitted R*f and τ; the generated fouling resistance—not flow-induced changes in U—is refitted. Process inlet variation recalculates controlled CW flow, wall temperature and shear. See README §3.5 for assumptions.</div>
+    <div class="row"><label class="lbl" for="scenarioTpi">Scenario process inlet, °C</label><input type="range" id="scenarioTpi" min="80" max="200" step="1" value="150" style="width:260px"><b id="scenarioTpiValue">150 °C</b></div>
+    <div class="note" id="scenarioNote"></div>
+    <table class="tr" id="scenarioTrends"></table>
+    <div class="cv" style="margin-top:8px"><canvas id="cScenario"></canvas></div>
+  </div>
+
+  <div class="charts">
+    <div class="chart"><h4>Fouling resistance — data, prediction cone, bounds</h4><p>Shaded = confidence cone on the falling-rate fit. Dashed = bounds. Red = limit where the CW valve saturates.</p><div class="cv"><canvas id="cRf"></canvas></div></div>
+    <div class="chart"><h4>CW flow the controller needs</h4><p>Rises as U falls; the run ends when it crosses the valve's full-open capacity.</p><div class="cv"><canvas id="cCw"></canvas></div></div>
+    <div class="chart"><h4>Annual cost vs. run length (prediction)</h4><p>Cleaning + extra CW + duty lost after saturation + bundle replacement over its life.</p><div class="cv"><canvas id="cCost"></canvas></div></div>
+    <div class="chart"><h4>Tube wall — deepest pit vs. average penetration</h4><p>Retire at the dashed margin. Dot = today. Pitting governs, not the average rate.</p><div class="cv"><canvas id="cWall"></canvas></div></div>
+  </div>
+  <div class="card insight" style="margin-top:16px"><h2>What this run says</h2><div id="insight"></div></div>
+
+  <!-- ================= SECONDARY INPUTS ================= -->
+  <h2 style="font-size:14px;color:var(--navy);margin:20px 0 8px">Secondary inputs</h2>
+  <details class="sec"><summary>Exchanger, fluids &amp; cooling-water hydraulics</summary><div class="body"><div class="sec-grid">
+    <div>
+      <div class="row"><span class="lbl">Tube OD, mm</span><input type="number" id="od" value="19.05" step="0.01"></div>
+      <div class="row"><span class="lbl">Tube wall, mm</span><input type="number" id="wall" value="2.108" step="0.001"></div>
+      <div class="row"><span class="lbl">Tube length, m</span><input type="number" id="len" value="6.1"></div>
+      <div class="row"><span class="lbl">Number of tubes</span><input type="number" id="nt" value="600"></div>
+      <div class="row"><span class="lbl">Tube passes</span><select id="passes"><option>2</option><option>4</option><option>6</option></select></div>
+      <div class="row"><span class="lbl">Clean U, W/m²K (blank = fitted)</span><input type="number" id="uclean" placeholder="fitted"></div>
+    </div>
+    <div>
+      <div class="row"><span class="lbl">Process flow default, kg/s</span><input type="number" id="mp" value="20"></div>
+      <div class="row"><span class="lbl">Process c<sub>p</sub>, kJ/kg·K</span><input type="number" id="cpp" value="2.5" step="0.01"></div>
+      <div class="row"><span class="lbl">CW c<sub>p</sub>, kJ/kg·K</span><input type="number" id="cpw" value="4.18" step="0.01"></div>
+      <div class="row"><span class="lbl">CW density, kg/m³</span><input type="number" id="rho" value="995"></div>
+      <div class="row"><span class="lbl">CW viscosity, Pa·s</span><input type="number" id="mu" value="0.00075" step="0.00005"></div>
+      <div class="row"><span class="lbl">CW thermal conductivity, W/m·K</span><input type="number" id="kw" value="0.60" step="0.01"></div>
+      <div class="row"><span class="lbl">Carbon-steel tube conductivity, W/m·K</span><input type="number" id="ktube" value="45" step="1"></div>
+    </div>
+    <div>
+      <div class="row"><span class="lbl">Historical CW flow from</span><select id="cwsrc"><option value="balance">Energy balance</option><option value="valve">Valve position</option><option value="measured">Metered column</option></select></div>
+      <div class="note">Energy balance needs process flow; valve position needs the valve column. Falls back to the energy balance row by row.</div>
+      <div class="row"><span class="lbl">Valve rated C<sub>V</sub></span><input type="number" id="cv" value="220"></div>
+      <div class="row"><span class="lbl">Characteristic</span><select id="vchar"><option value="lin">Linear</option><option value="eq">Equal-percentage</option></select></div>
+      <div class="row"><span class="lbl">Rangeability R</span><input type="number" id="vR" value="50"></div>
+      <div class="row"><span class="lbl">CW supply header, barg</span><input type="number" id="pSup" value="4.5" step="0.1"></div>
+      <div class="row"><span class="lbl">CW return header, barg</span><input type="number" id="pRet" value="1.5" step="0.1"></div>
+      <div class="row"><span class="lbl">Other losses at reference flow, bar / kg/s</span><input type="number" id="dpOther" value="0.3" step="0.05" style="width:56px"><input type="number" id="wRef" value="50" style="width:56px"></div>
+      <div class="note" id="hydnote"></div>
+      <div class="row"><span class="lbl">Required dirty U at full-open CW, W/m²K</span><b id="uRequired" style="font-family:'Courier New',monospace;color:var(--navy)">–</b></div>
+      <div class="row"><span class="lbl">Fouling threshold at full-open CW, m²K/W</span><b id="rfAllow" style="font-family:'Courier New',monospace;color:var(--navy)">–</b></div>
+      <div class="note">The full-open CW capacity comes from these exchanger, valve, and header inputs. Required U is calculated by solving for the U that just holds the process outlet setpoint at that flow; the fouling threshold is then R<sub>f</sub> = 1/U<sub>required</sub> − 1/U<sub>clean</sub>. The falling-rate clean-U baseline is displayed here; each trend uses its own clean-U baseline for its trigger.</div>
+    </div>
+  </div></div></details>
+
+  <details class="sec"><summary>Economics</summary><div class="body"><div class="sec-grid">
+    <div>
+      <div class="row"><span class="lbl">Hydroblast cost per cleaning, $</span><input type="number" id="cc" value="8000"></div>
+      <div class="row"><span class="lbl">Downtime per cleaning, days</span><input type="number" id="down" value="2" step="0.5"></div>
+      <div class="row"><span class="lbl">Spare exchanger?</span><select id="spare"><option value="0">No</option><option value="1">Yes</option></select></div>
+    </div>
+    <div>
+      <div class="row"><span class="lbl">Value of lost cooling duty, $/MWh</span><input type="number" id="dv" value="40"></div>
+      <div class="row"><span class="lbl">Cost of extra CW circulated, $/m³</span><input type="number" id="cwc" value="0.05" step="0.01"></div>
+    </div>
+    <div><div class="row"><span class="lbl">Bundle replacement, $</span><input type="number" id="cb" value="150000"></div></div>
+  </div></div></details>
+
+  <details class="sec"><summary>Corrosion &amp; tube life (carbon steel)</summary><div class="body"><div class="sec-grid">
+    <div>
+      <div class="row"><span class="lbl">Average corrosion rate, mpy</span><input type="number" id="rate" value="2" step="0.5"></div>
+      <div class="row"><span class="lbl">Minimum required wall, mm</span><input type="number" id="tmin" value="0.76" step="0.01"></div>
+    </div>
+    <div>
+      <div class="row"><span class="lbl">Pitting factor at 10 yr</span><input type="number" id="pf10" value="2.5" step="0.1"></div>
+      <div class="row"><span class="lbl">Pit-growth exponent n</span><input type="number" id="pfn" value="0.5" step="0.05"></div>
+      <div class="row"><span class="lbl">Pitting-factor cap</span><input type="number" id="pfmax" value="10"></div>
+    </div>
+    <div>
+      <div class="row"><span class="lbl">Extra penetration per cleaning, mils</span><input type="number" id="perclean" value="0" step="0.5"></div>
+      <div class="row"><span class="lbl">Area exponent a / coupon area m²</span><input type="number" id="aexp" value="0" step="0.05" style="width:56px"><input type="number" id="aref" value="0.01" style="width:56px"></div>
+      <div class="row"><span class="lbl">LSI / chloride ppm (validation)</span><input type="number" id="lsi" value="0.5" step="0.1" style="width:56px"><input type="number" id="cl" value="250" style="width:56px"></div>
+    </div>
+  </div><div id="moc" style="margin-top:8px"></div></div></details>
+
+  <details class="sec"><summary>Demo-data generator</summary><div class="body"><div class="sec-grid">
+    <div>
+      <div class="row"><span class="lbl">Process inlet / setpoint, °C</span><input type="number" id="d_tpi" value="150" style="width:56px"><input type="number" id="d_tset" value="45" style="width:56px"></div>
+      <div class="row"><span class="lbl">CW supply, °C</span><input type="number" id="d_twi" value="30"></div>
+      <div class="row"><span class="lbl">Clean U, W/m²K</span><input type="number" id="d_u" value="850"></div>
+    </div>
+    <div>
+      <div class="row"><span class="lbl">Scaling-surface temperature, °C</span><input type="number" id="d_ts" value="80"></div>
+      <div class="row"><span class="lbl">CaCO₃ time constant τ, d (assumed)</span><input type="number" id="d_tau" value="60"></div>
+      <div class="row"><span class="lbl">Second mechanism, m²K/W per day (assumed)</span><input type="number" id="d_lin" value="4e-7" step="1e-7"></div>
+    </div>
+    <div>
+      <div class="row"><span class="lbl">Span / every, days</span><input type="number" id="d_days" value="270" style="width:56px"><input type="number" id="d_every" value="3" style="width:56px"></div>
+      <div class="row"><span class="lbl">Instrument noise σ, °C</span><input type="number" id="d_noise" value="0.15" step="0.05"></div>
+      <div class="row"><span class="lbl">Run start date</span><input type="date" id="d_start" value="2026-01-05"></div>
+    </div>
+  </div><div class="note">Knudsen &amp; Story (1978) CaCO₃ asymptote via Bott Eq. 8.24 at the surface temperature above, plus a slow second mechanism, on the controller basis. Literature-shaped, not measured — see README.</div></div></details>
+</div></main>
+<footer>Sharpes Process Engineering · Cleaning Interval &amp; Bundle Life · v2 · 2026-10-09 · <a href="https://github.com/joshuasharpes84-rgb/hx-cleaning-interval#readme" target="_blank" rel="noopener">README / method &amp; sources</a></footer>
+
+<script src="lib/chart.umd.min.js"></script>
+<script src="lib/xlsx.full.min.js"></script>
+<script src="cleaning_engine.js"></script>
+<script>
+(function () {
+  const E = window.CleanEngine, $ = id => document.getElementById(id);
+  const num = id => { const v = parseFloat($(id).value); return Number.isFinite(v) ? v : NaN; };
+  const COLS = [ { k: "date", h: "Date", type: "date" }, { k: "day", h: "Day" },
+    { k: "tpi", h: "Process in °C" }, { k: "tpo", h: "Process out °C" }, { k: "twi", h: "CW in °C" }, { k: "two", h: "CW out °C" },
+    { k: "mp", h: "Process flow kg/s", opt: true }, { k: "mw", h: "CW flow kg/s", opt: true }, { k: "valve", h: "CW valve %", opt: true } ];
+  const KEYS = ["falling", "linear", "asymptotic"];
+  const META = {
+    falling: { name: "Falling rate", role: "prediction", color: "#7C3AED",
+      eq: "1/U² = a·t + c",
+      text: "McCabe &amp; Robinson's scale law (1924), as used by Peters &amp; Timmerhaus (Eq. 9-53) for inverse-solubility scale. The squared resistance grows linearly, so fouling keeps going but slows with time. Fitted by least squares on 1/U² against day; the shaded cone is the confidence band on that line projected forward. The cone reflects data scatter and record length — <i>not</i> whether this equation is the right shape; that is what the two bounds are for.",
+      params: [["a", "a, (m²K/W)²/day"], ["c", "c = 1/U<sub>clean</sub>², (m²K/W)²"]] },
+    linear: { name: "Linear", role: "upper bound", color: "#D97706",
+      eq: "R<sub>f</sub> = r·t",
+      text: "Constant deposition with no removal (Bott Fig. 4.1, curve A; Perry's 9th p.11-22). Fouling never slows, so this is the soonest-cleaning bound.",
+      params: [["w0", "1/U<sub>clean</sub>, m²K/W"], ["r", "r, m²K/W per day"]] },
+    asymptotic: { name: "Asymptotic", role: "lower bound", color: "#2563EB",
+      eq: "R<sub>f</sub> = R<sub>f</sub>*·(1 − e<sup>−t/τ</sup>)",
+      text: "Kern &amp; Seaton (1959), Bott Eq. 8.20: deposition balanced by shear removal, so fouling levels off at R<sub>f</sub>*. If R<sub>f</sub>* stays below the limits, this bound never forces a cleaning.",
+      params: [["w0", "1/U<sub>clean</sub>, m²K/W"], ["Rs", "R<sub>f</sub>*, m²K/W"], ["tau", "τ, days"]] } };
+  const overrides = { falling: null, linear: null, asymptotic: null };
+  const open = { falling: false, linear: false, asymptotic: false };
+  const charts = {}; let lastFit = null, scenarioInitialized = false;
+
+  // ---------------- spreadsheet ----------------
+  function buildHeader() {
+    $("grid").innerHTML = "<thead><tr><th>#</th>" + COLS.map(c => `<th data-col="${c.k}">${c.h}</th>`).join("") +
+      "<th>Day used</th></tr></thead><tbody></tbody>";
+  }
+  function addRows(n) {
+    const tb = $("grid").tBodies[0];
+    for (let i = 0; i < n; i++) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td class="rn">${tb.rows.length + 1}</td>` + COLS.map(c =>
+        `<td data-col="${c.k}"><input data-k="${c.k}" ${c.type === "date" ? 'placeholder="yyyy-mm-dd"' : ""}></td>`).join("") + `<td class="dd"></td>`;
+      tb.appendChild(tr);
+    }
+    applyColVisibility();
+  }
+  function applyColVisibility() {
+    document.querySelectorAll(".optcol").forEach(cb => {
+      document.querySelectorAll(`#grid [data-col="${cb.dataset.col}"]`).forEach(el => el.classList.toggle("hidecol", !cb.checked));
+    });
+  }
+  function clearGrid(rows) { buildHeader(); addRows(rows || 20); }
+  function setRows(data) {                        // data: array of objects keyed by COLS.k
+    clearGrid(Math.max(data.length + 5, 20));
+    const trs = $("grid").tBodies[0].rows;
+    data.forEach((r, i) => COLS.forEach(c => { const v = r[c.k]; if (v !== undefined && v !== null && v !== "" && !(typeof v === "number" && isNaN(v)))
+      trs[i].querySelector(`input[data-k="${c.k}"]`).value = typeof v === "number" ? +v.toFixed(c.k === "day" ? 2 : 3) : v; }));
+    ["mp", "mw", "valve"].forEach(k => { if (data.some(r => Number.isFinite(r[k]))) document.querySelector(`.optcol[data-col="${k}"]`).checked = true; });
+    applyColVisibility();
+  }
+  function parseDate(v) {
+    if (v instanceof Date) return v;
+    const s = String(v).trim(); if (!s) return null;
+    let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/); if (m) return new Date(Date.UTC(+m[1], m[2] - 1, +m[3]));
+    m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/); if (m) return new Date(Date.UTC(+m[3] < 100 ? 2000 + +m[3] : +m[3], m[1] - 1, +m[2]));
+    const d = new Date(s); return isNaN(d) ? null : d;
+  }
+  function readGrid() {
+    const rows = [], trs = $("grid").tBodies[0].rows;
+    let t0 = $("lastClean").value ? parseDate($("lastClean").value) : null;
+    const raw = [...trs].map(tr => { const o = {}; COLS.forEach(c => o[c.k] = tr.querySelector(`input[data-k="${c.k}"]`).value.trim()); return { tr, o }; });
+    if (!t0) { const first = raw.find(x => x.o.date && parseDate(x.o.date)); if (first) t0 = parseDate(first.o.date); }
+    raw.forEach(({ tr, o }) => {
+      let t = parseFloat(o.day);
+      if (!Number.isFinite(t) && o.date) { const d = parseDate(o.date); if (d && t0) t = (d - t0) / 86400000; }
+      const f = k => { const v = parseFloat(o[k]); return Number.isFinite(v) ? v : NaN; };
+      const r = { t, tpi: f("tpi"), tpo: f("tpo"), twi: f("twi"), two: f("two"), mp: f("mp"), mw: f("mw"), valve: f("valve") };
+      const ok = [r.t, r.tpi, r.tpo, r.twi, r.two].every(Number.isFinite);
+      tr.lastElementChild.textContent = ok ? r.t.toFixed(1) : "";
+      if (ok) rows.push(r);
+    });
+    return rows.sort((a, b) => a.t - b.t);
+  }
+  // paste a block from Excel starting at the focused cell
+  $("grid").addEventListener("paste", e => {
+    const inp = e.target.closest("input"); if (!inp) return;
+    const text = (e.clipboardData || window.clipboardData).getData("text"); if (!/[\t\n]/.test(text)) return;
+    e.preventDefault();
+    const lines = text.replace(/\r/g, "").split("\n").filter(l => l.length);
+    const visCols = COLS.filter(c => !document.querySelector(`#grid th[data-col="${c.k}"]`).classList.contains("hidecol")).map(c => c.k);
+    let tr = inp.closest("tr"); const startIdx = visCols.indexOf(inp.dataset.k);
+    const tb = $("grid").tBodies[0]; const needed = [...tb.rows].indexOf(tr) + lines.length - tb.rows.length; if (needed > 0) addRows(needed + 5);
+    tr = inp.closest("tr");
+    lines.forEach((line, i) => { const cells = line.split(/\t|,(?=\S)/); const row = tb.rows[[...tb.rows].indexOf(tr) + i];
+      cells.forEach((v, j) => { const k = visCols[startIdx + j]; if (k) row.querySelector(`input[data-k="${k}"]`).value = v.trim(); }); });
+    $("gridinfo").textContent = `Pasted ${lines.length} rows.`;
+  });
+  // upload CSV/XLSX, map headers by name
+  const HMAP = [["date", /date|time|stamp/], ["day", /^day|days/], ["tpi", /proc.*in|process.*in|t_?p_?in|hot.*in/], ["tpo", /proc.*out|process.*out|t_?p_?out|hot.*out/],
+    ["twi", /(cw|water|cool).*(in|supply)|t_?w_?in/], ["two", /(cw|water|cool).*(out|return)|t_?w_?out/], ["mp", /proc.*flow|process.*flow/],
+    ["mw", /(cw|water|cool).*flow/], ["valve", /valve|open|position|%/]];
+  $("upload").addEventListener("change", async e => {
+    const f = e.target.files[0]; if (!f) return;
+    const wb = XLSX.read(await f.arrayBuffer(), { type: "array", cellDates: true });
+    const aoa = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: true, defval: "" });
+    const hdr = aoa[0].map(h => String(h).toLowerCase());
+    const idx = {}; HMAP.forEach(([k, re]) => { const i = hdr.findIndex((h, j) => re.test(h) && !Object.values(idx).includes(j)); if (i >= 0) idx[k] = i; });
+    const data = aoa.slice(1).filter(r => r.some(v => v !== "")).map(r => { const o = {};
+      Object.entries(idx).forEach(([k, i]) => { const v = r[i]; o[k] = k === "date" ? (v instanceof Date ? v.toISOString().slice(0, 10) : String(v)) : parseFloat(v); }); return o; });
+    setRows(data);
+    $("gridinfo").textContent = `Loaded ${data.length} rows from ${f.name}; matched columns: ${Object.keys(idx).join(", ") || "none"}.`;
+    e.target.value = ""; run();
+  });
+  $("template").addEventListener("click", () => {
+    const csv = "date,day,process_in_C,process_out_C,cw_in_C,cw_out_C,process_flow_kg_s,cw_flow_kg_s,cw_valve_pct\n2026-01-05,,150,45,30,52,20,,62\n";
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" })); a.download = "fouling_log_template.csv"; a.click();
+  });
+  $("addrows").addEventListener("click", () => addRows(10));
+  $("clear").addEventListener("click", () => clearGrid(20));
+  document.querySelectorAll(".optcol").forEach(cb => cb.addEventListener("change", applyColVisibility));
+
+  // ---------------- inputs ----------------
+  function inputs() {
+    const geo = E.geometry({ od_mm: num("od"), wall_mm: num("wall"), len_m: num("len"), nTubes: num("nt"), passes: num("passes") });
+    const op = { mp: num("mp"), cpp: num("cpp"), cpw: num("cpw") };
+    const hyd = { rho: num("rho"), mu: num("mu"), pSup: num("pSup"), pRet: num("pRet"), dpOther: num("dpOther") || 0, wRef: num("wRef") || 50,
+                  char: $("vchar").value, R: num("vR"), cv: num("cv") };
+    const ec = { cleanCost: num("cc"), downDays: num("down"), spare: $("spare").value === "1", dutyValue: num("dv"), cwCost: num("cwc"), bundleCost: num("cb") };
+    const corr = { rate: num("rate"), pf10: num("pf10"), n: num("pfn"), pfMax: num("pfmax"), aExp: num("aexp") || 0, aRef: num("aref") || 0.01,
+                   perClean: num("perclean") || 0, allowMils: (num("wall") - num("tmin")) / E.MM_PER_MIL };
+    const thermalProps = { rho: hyd.rho, mu: hyd.mu, cpw: op.cpw, k: num("kw"), kTube: num("ktube") };
+    return { geo, op, hyd, ec, corr, thermalProps };
+  }
+  function loadDemo() {
+    const { geo, op, hyd } = inputs();
+    const d = { TsC: num("d_ts"), tau: num("d_tau"), Uclean: num("d_u"), tpi: num("d_tpi"), twi: num("d_twi"), tset: num("d_tset"),
+                days: num("d_days"), every: num("d_every"), noise: num("d_noise"), linRate: num("d_lin"), startDate: $("d_start").value };
+    const demo = E.demoLog(op, geo, hyd, d);
+    $("lastClean").value = d.startDate;
+    setRows(demo.rows.map(r => ({ date: r.date, tpi: r.tpi, tpo: r.tpo, twi: r.twi, two: r.two, mp: r.mp, valve: r.valve })));
+    $("cwsrc").value = "balance";
+    $("gridinfo").textContent = `Demo: Knudsen–Story R_f∞ = ${demo.RfInf.toExponential(2)} m²K/W at ${d.TsC} °C + ${d.linRate} m²K/W/day second mechanism, noise σ ${d.noise} °C.`;
+    Object.keys(overrides).forEach(k => overrides[k] = null);
+    run();
+  }
+
+  // ---------------- analysis ----------------
+  const median = a => { const s = [...a].sort((x, y) => x - y); return s.length ? s[Math.floor(s.length / 2)] : NaN; };
+  const fmtD = d => d === null || !Number.isFinite(d) ? "never" : d >= 365 ? (d / 365).toFixed(1) + " yr" : Math.round(d) + " d";
+  function chart(id, cfg) { if (charts[id]) charts[id].destroy(); charts[id] = new Chart($(id), cfg); }
+  function msg(html, cls) { $("msgs").insertAdjacentHTML("beforeend", `<div class="msg ${cls}">${html}</div>`); }
+
+  function run() {
+    $("msgs").innerHTML = "";
+    const { geo, op, hyd, ec, corr, thermalProps } = inputs();
+    const rows = readGrid();
+    const H = E.headerSummary(geo, hyd);
+    $("hydnote").textContent = `Valve full open: ${H.wMax.toFixed(1)} kg/s (${H.velAtMax.toFixed(2)} m/s in tubes, exchanger ΔP ${H.dpHxAtMax.toFixed(2)} bar).`;
+    if (rows.length < 6) { msg("Need at least 6 complete rows (day or date, plus the four temperatures).", "e"); return; }
+    const pts = rows.map(r => E.rowU(r, op, geo, hyd, $("cwsrc").value)).filter(p => Number.isFinite(p.U) && p.U > 0);
+    if (pts.length < 6) { msg("Fewer than 6 rows gave a valid U — check temperatures, flows and the CW-flow source.", "e"); return; }
+    if (pts.some(p => p.how !== $("cwsrc").value)) msg(`Some rows had no ${$("cwsrc").value === "valve" ? "valve %" : "metered CW flow"}; used the energy balance for those.`, "w");
+    const imb = Math.max(...pts.map(p => Math.abs(p.imbalance))); if (imb > 0.05) msg(`Energy balance closes only to ±${(imb * 100).toFixed(0)}% on some rows (process duty vs. CW duty from the chosen flow source).`, "w");
+
+    const b = { mp: num("b_mp") || median(rows.map(r => Number.isFinite(r.mp) ? r.mp : op.mp)), tpi: num("b_tpi") || median(rows.map(r => r.tpi)),
+                tset: num("b_tset") || median(rows.map(r => r.tpo)), twi: num("b_twi") || median(rows.map(r => r.twi)) };
+    const today = Math.max(...rows.map(r => r.t));
+    const scenarioSlider = $("scenarioTpi");
+    if (!scenarioInitialized) { scenarioSlider.value = b.tpi.toFixed(0); scenarioInitialized = true; }
+    scenarioSlider.min = Math.max(b.twi + 1, b.tpi - 20).toFixed(0);
+    scenarioSlider.max = (b.tpi + 20).toFixed(0);
+    scenarioSlider.value = Math.min(Number(scenarioSlider.max), Math.max(Number(scenarioSlider.min), num("scenarioTpi")));
+    const scenarioTpi = num("scenarioTpi");
+    $("scenarioTpiValue").textContent = `${scenarioTpi.toFixed(0)} °C`;
+    const conf = parseFloat($("conf").value), horizon = 1460;
+    const fit = E.fitAll(pts, num("uclean"), conf); lastFit = fit;
+    // apply user overrides
+    KEYS.forEach(k => { const F = fit.models[k]; F.fitted = { ...F.params };
+      if (overrides[k]) { Object.assign(F.params, overrides[k]); F.y = E.model(k, F.params); } F.w0 = E.w0Of(k, F.params); });
+    const thermal = {};
+    KEYS.forEach(k => {
+      thermal[k] = E.thermalLimit(geo, b, op, H.wMax, 1 / fit.models[k].w0);
+    });
+    const asymFit = fit.models.asymptotic;
+    const coupled = E.coupledFoulingScenario(geo, op, hyd, b,
+      { Uclean: 1 / fit.models.falling.w0, Rs: asymFit.params.Rs, tau: asymFit.params.tau },
+      { tpi: scenarioTpi, days: 1460, every: 3 }, thermalProps);
+    if (coupled.feasible) {
+      const trendRows = KEYS.map(k => {
+        const F = coupled.trends[k], p = F.params;
+        const paramText = k === "falling" ? `a=${p.a.toExponential(2)}`
+          : k === "linear" ? `r=${p.r.toExponential(2)}/d`
+          : `R_f*=${p.Rs.toExponential(2)}, τ=${p.tau.toFixed(0)} d`;
+        return `<tr><td class="nm">${META[k].name}</td><td>${paramText}</td><td>${fmtD(F.trigger)}</td><td>${Number.isFinite(F.limit.RfAllow) && F.limit.RfAllow > 0 ? F.limit.RfAllow.toExponential(2) : "infeasible"}</td></tr>`;
+      }).join("");
+      $("scenarioTrends").innerHTML = `<tr><th>Refitted trend</th><th>Scenario fit parameter(s)</th><th>Predicted trigger</th><th>Rf threshold, m²K/W</th></tr>${trendRows}`;
+      $("scenarioNote").textContent = `Estimated process-side film coefficient ${coupled.hHot.toFixed(0)} W/m²K (inferred from clean U); process-side wall ${coupled.minHotWallC.toFixed(1)}–${coupled.maxHotWallC.toFixed(1)} °C; CW-side tube wall ${coupled.minWallC.toFixed(1)}–${coupled.maxWallC.toFixed(1)} °C; deposit/CW interface ${coupled.minInterfaceC.toFixed(1)}–${coupled.maxInterfaceC.toFixed(1)} °C. CW-side shear is recalculated with controlled flow. Valve saturation in generated history: ${coupled.saturatedDay === null ? "not reached" : `day ${coupled.saturatedDay}`}.`;
+      const scenarioEnd = Math.max(1, Math.min(1460, Math.max(
+        coupled.samples[coupled.samples.length - 1].t,
+        ...KEYS.map(k => coupled.trends[k].trigger || 0))));
+      const scenarioXs = Array.from({ length: 121 }, (_, i) => i * scenarioEnd / 120);
+      chart("cScenario", { type: "line", data: { datasets: [
+        ...KEYS.map(k => { const p = coupled.trends[k].params, y = E.model(k, p), w0 = E.w0Of(k, p);
+          return { label: `${META[k].name} fit`, data: scenarioXs.map(x => ({ x, y: (y(x) - w0) * 1e4 })),
+            borderColor: META[k].color, borderWidth: k === "falling" ? 2.5 : 1.5,
+            borderDash: k === "falling" ? [] : [6, 4], pointRadius: 0 }; }),
+        { label: "Coupled trajectory", type: "scatter", data: coupled.samples.map(p => ({ x: p.t, y: p.Rf * 1e4 })),
+          pointRadius: 2, backgroundColor: "#0F172A" },
+        ...(coupled.trends.falling.limit.RfAllow > 0 ? [{ label: "Scenario cleaning threshold",
+          data: [{ x: 0, y: coupled.trends.falling.limit.RfAllow * 1e4 }, { x: scenarioEnd, y: coupled.trends.falling.limit.RfAllow * 1e4 }],
+          borderColor: "#DC2626", borderDash: [2, 3], borderWidth: 1.8, pointRadius: 0 }] : [])
+      ] }, options: { maintainAspectRatio: false, parsing: false, plugins: { legend: { labels: { boxWidth: 10, font: { size: 10 } } } },
+        scales: { x: { type: "linear", title: { display: true, text: "days since cleaning" } },
+          y: { title: { display: true, text: "Scenario R_f ×10⁻⁴ m²K/W" } } } } });
+    } else {
+      $("scenarioTrends").innerHTML = "";
+      $("scenarioNote").textContent = `Coupled sensitivity unavailable: ${coupled.reason}`;
+      if (charts.cScenario) { charts.cScenario.destroy(); delete charts.cScenario; }
+    }
+    const thermalFall = thermal.falling;
+    $("uRequired").textContent = thermalFall.feasible ? thermalFall.Urequired.toFixed(1) : "Not achievable";
+    $("rfAllow").textContent = thermalFall.feasible && thermalFall.RfAllow > 0
+      ? thermalFall.RfAllow.toExponential(3)
+      : (thermalFall.feasible ? "Clean U already below target" : "Not achievable");
+    if (!thermalFall.feasible) msg("The process outlet target cannot be met at the calculated full-open cooling-water flow, even with infinite U. Check the projection temperatures, process flow, valve/header basis, and exchanger geometry.", "e");
+    else if (thermalFall.RfAllow <= 0) msg("The clean-U baseline is already below the U required to hold the process outlet setpoint at full-open cooling-water flow.", "e");
+    const P = fit.models.falling.params;
+    const lo = E.fallingEdge(P, -1), hi = E.fallingEdge(P, +1);
+    const trig = {}; KEYS.forEach(k => trig[k] = E.trigger(fit.models[k].y, fit.models[k].w0, geo, b, op, H.wMax, thermal[k].RfAllow, horizon));
+    const tLo = E.trigger(lo, fit.models.falling.w0, geo, b, op, H.wMax, thermal.falling.RfAllow, horizon), tHi = E.trigger(hi, fit.models.falling.w0, geo, b, op, H.wMax, thermal.falling.RfAllow, horizon);
+    const cost = {}; KEYS.forEach(k => cost[k] = E.costRows(fit.models[k].y, geo, b, op, H.wMax, ec, corr, horizon));
+    const cleanBy = k => { const c = cost[k].interior ? cost[k].opt.th : null, t = trig[k].day; return [c, t].filter(x => x !== null).reduce((m, x) => Math.min(m, x), Infinity); };
+    // ---- trends table, sorted by soonest cleaning
+    const order = [...KEYS].sort((x, y) => cleanBy(x) - cleanBy(y));
+    const fmtP = (k, v) => k === "tau" ? v.toFixed(0) : v.toExponential(3);
+    $("trends").innerHTML = `<tr><th>Trend</th><th>Clean by</th><th>Why</th><th>Cost optimum</th><th>$/yr at optimum</th><th>Fit RMSE, 1/U</th><th>AICc</th><th></th></tr>` +
+      order.map(k => { const M = META[k], F = fit.models[k], c = cost[k], cb = cleanBy(k);
+        const why = cb === Infinity ? "–" : (trig[k].day === cb ? trig[k].why : "cost optimum");
+        const cone = k === "falling" ? ` <span style="color:var(--muted)">(${fmtD(tHi.day)}–${fmtD(tLo.day)})</span>` : "";
+        return `<tr class="${k === "falling" ? "pred" : ""}"><td class="nm"><span style="color:${M.color}">■</span> ${M.name}<span class="role ${k === "falling" ? "p" : "b"}">${M.role}</span>${overrides[k] ? ' <span class="role b">edited</span>' : ""}</td>
+          <td>${fmtD(cb === Infinity ? null : cb)}${cone}</td><td style="font-family:inherit;color:var(--muted)">${why}</td>
+          <td>${c.interior ? fmtD(c.opt.th) : "none ≤ 4 yr"}</td><td>$${Math.round(c.opt.perYr).toLocaleString()}</td>
+          <td>${F.rmse.toExponential(1)}</td><td>${F.aicc.toFixed(0)}</td><td><button class="toggle" data-k="${k}">${open[k] ? "hide ▴" : "equation & parameters ▾"}</button></td></tr>
+          <tr class="det" ${open[k] ? "" : "hidden"} data-det="${k}"><td colspan="8"><span class="eqn">${M.eq}</span><div>${M.text}</div>
+          <div class="pgrid">${M.params.map(([pk, pl]) => `<label>${pl}<input data-m="${k}" data-p="${pk}" value="${fmtP(pk, F.params[pk])}"></label>`).join("")}
+          <button class="btn" data-apply="${k}">Apply</button><button class="btn" data-reset="${k}">Reset to fit</button>
+          <span class="note" style="margin:0">Fitted: ${M.params.map(([pk]) => pk + " = " + fmtP(pk, F.fitted[pk])).join(", ")}</span></div></td></tr>`; }).join("");
+    $("trends").querySelectorAll(".toggle").forEach(bt => bt.onclick = () => { open[bt.dataset.k] = !open[bt.dataset.k]; run(); });
+    $("trends").querySelectorAll("[data-apply]").forEach(bt => bt.onclick = () => { const k = bt.dataset.apply, o = {};
+      $("trends").querySelectorAll(`input[data-m="${k}"]`).forEach(i => { const v = parseFloat(i.value); if (Number.isFinite(v)) o[i.dataset.p] = v; }); overrides[k] = o; open[k] = true; run(); });
+    $("trends").querySelectorAll("[data-reset]").forEach(bt => bt.onclick = () => { overrides[bt.dataset.reset] = null; run(); });
+
+    // ---- charts
+    const tEnd = Math.max(today * 1.8, Math.min((Number.isFinite(cleanBy("falling")) ? cleanBy("falling") : today) * 1.4, horizon), 60);
+    const xs = Array.from({ length: 121 }, (_, i) => i * tEnd / 120), w0f = fit.models.falling.w0;
+    const rfOf = (y, x) => (y(x) - w0f) * 1e4;
+    chart("cRf", { type: "line", data: { datasets: [
+      { label: "Cone (upper)", data: xs.map(x => ({ x, y: rfOf(hi, x) })), borderWidth: 0, pointRadius: 0, backgroundColor: "rgba(124,58,237,.15)", fill: "+1" },
+      { label: "Cone (lower)", data: xs.map(x => ({ x, y: rfOf(lo, x) })), borderWidth: 0, pointRadius: 0 },
+      ...KEYS.map(k => ({ label: META[k].name, data: xs.map(x => ({ x, y: rfOf(fit.models[k].y, x) })), borderColor: META[k].color,
+        borderWidth: k === "falling" ? 2.5 : 1.5, borderDash: k === "falling" ? [] : [6, 4], pointRadius: 0 })),
+      { label: "Data", type: "scatter", data: pts.map(p => ({ x: p.t, y: (1 / p.U - w0f) * 1e4 })), pointRadius: 2, backgroundColor: "#94A3B8" },
+      ...(thermal.falling.RfAllow > 0 ? [{ label: "Fouling threshold — full-open CW at outlet setpoint", data: [{ x: 0, y: thermal.falling.RfAllow * 1e4 }, { x: tEnd, y: thermal.falling.RfAllow * 1e4 }], borderColor: "#DC2626", borderDash: [2, 3], borderWidth: 1.8, pointRadius: 0 }] : [])
+    ] }, options: { maintainAspectRatio: false, parsing: false, plugins: { legend: { labels: { boxWidth: 10, font: { size: 10 }, filter: i => !/Cone/.test(i.text) } } },
+      scales: { x: { type: "linear", title: { display: true, text: "days since last cleaning" } }, y: { title: { display: true, text: "R_f ×10⁻⁴ m²K/W" } } } } });
+
+    const need = y => xs.map(x => { const v = E.cwNeeded(1 / y(x), geo, b, op); return { x, y: Number.isFinite(v) ? Math.min(v, H.wMax * 1.6) : H.wMax * 1.6 }; });
+    chart("cCw", { type: "line", data: { datasets: [
+      { label: "Cone (upper)", data: need(hi), borderWidth: 0, pointRadius: 0, backgroundColor: "rgba(124,58,237,.15)", fill: "+1" },
+      { label: "Cone (lower)", data: need(lo), borderWidth: 0, pointRadius: 0 },
+      { label: "Needed (prediction)", data: need(fit.models.falling.y), borderColor: META.falling.color, borderWidth: 2.5, pointRadius: 0 },
+      { label: "Historical (from data)", type: "scatter", data: pts.map(p => ({ x: p.t, y: p.mw })), pointRadius: 2, backgroundColor: "#94A3B8" },
+      { label: "Valve full open", data: [{ x: 0, y: H.wMax }, { x: tEnd, y: H.wMax }], borderColor: "#DC2626", borderWidth: 1.2, pointRadius: 0 }
+    ] }, options: { maintainAspectRatio: false, parsing: false, plugins: { legend: { labels: { boxWidth: 10, font: { size: 10 }, filter: i => !/Cone/.test(i.text) } } },
+      scales: { x: { type: "linear", title: { display: true, text: "days since last cleaning" } }, y: { title: { display: true, text: "CW flow, kg/s" } } } } });
+
+    const cf = cost.falling;
+    chart("cCost", { type: "line", data: { datasets: [
+      { label: "Total", data: cf.rows.map(r => ({ x: r.th, y: r.perYr / 1000 })), borderColor: META.falling.color, borderWidth: 2.5, pointRadius: 0 },
+      { label: "Cleaning + CW + lost duty", data: cf.rows.map(r => ({ x: r.th, y: r.cleanPart / 1000 })), borderColor: "#64748B", borderWidth: 1.2, pointRadius: 0 },
+      { label: "Bundle replacement", data: cf.rows.map(r => ({ x: r.th, y: r.bundlePart / 1000 })), borderColor: "#94A3B8", borderDash: [4, 3], borderWidth: 1.2, pointRadius: 0 }
+    ] }, options: { maintainAspectRatio: false, parsing: false, plugins: { legend: { labels: { boxWidth: 10, font: { size: 10 } } } },
+      scales: { x: { type: "linear", title: { display: true, text: "run length between cleanings, days" } }, y: { min: 0, max: Math.ceil(cf.opt.perYr / 1000 * 2.5), title: { display: true, text: "k$/yr" } } } } });
+
+    // ---- bundle state
+    const cycleDays = (Number.isFinite(cleanBy("falling")) ? cleanBy("falling") : cost.falling.opt.th) + ec.downDays;
+    const ageYr = (num("ageYr") || 0) + 0, nDone = num("nClean") || 0;
+    const st = E.currentState(corr, geo.area, ageYr, nDone, cycleDays);
+    const life = ageYr + st.remainYr;
+    $("wallbar").style.width = Math.min(st.usedFrac * 100, 100).toFixed(0) + "%";
+    $("wallnote").textContent = `${(st.usedFrac * 100).toFixed(0)}% of the ${corr.allowMils.toFixed(0)}-mil pit margin (nominal − minimum wall) used after ${ageYr} yr and ${nDone} cleanings.`;
+    $("s_avg").textContent = st.avg.toFixed(1) + " mils"; $("s_pit").textContent = st.deep.toFixed(1) + " mils"; $("s_left").textContent = st.marginLeft.toFixed(1) + " mils";
+    const yrs = Array.from({ length: 121 }, (_, i) => i * Math.min(Math.max(life * 1.2, ageYr + 1), 40) / 120);
+    const lossAt = y => E.wallLoss(y, y <= ageYr ? Math.round(nDone * y / Math.max(ageYr, 1e-9)) : nDone + Math.floor((y - ageYr) * 365 / cycleDays), corr, geo.area);
+    chart("cWall", { type: "line", data: { datasets: [
+      { label: "Deepest pit", data: yrs.map(y => ({ x: y, y: lossAt(y) })), borderColor: "#DC2626", borderWidth: 2.2, pointRadius: 0 },
+      { label: "Average penetration", data: yrs.map(y => ({ x: y, y: corr.rate * y })), borderColor: "#64748B", borderWidth: 1.4, pointRadius: 0 },
+      { label: "Margin", data: [{ x: 0, y: corr.allowMils }, { x: yrs[120], y: corr.allowMils }], borderColor: "#0F172A", borderDash: [5, 4], borderWidth: 1.2, pointRadius: 0 },
+      { label: "Today", type: "scatter", data: [{ x: ageYr, y: st.deep }], pointRadius: 5, backgroundColor: "#0F172A" }
+    ] }, options: { maintainAspectRatio: false, parsing: false, plugins: { legend: { labels: { boxWidth: 10, font: { size: 10 } } } },
+      scales: { x: { type: "linear", title: { display: true, text: "years in service" } }, y: { title: { display: true, text: "mils" } } } } });
+
+    // ---- KPIs
+    const cbF = cleanBy("falling");
+    $("k1").textContent = fmtD(cbF === Infinity ? null : cbF);
+    $("k1s").innerHTML = `cone ${fmtD(tHi.day)}–${fmtD(tLo.day)} · ${trig.falling.day === cbF ? trig.falling.why : "cost optimum"}${Number.isFinite(cbF) ? ` · ${fmtD(Math.max(cbF - today, 0))} from today` : ""}`;
+    $("k2").textContent = `${fmtD(Number.isFinite(cleanBy("linear")) ? cleanBy("linear") : null)} … ${fmtD(Number.isFinite(cleanBy("asymptotic")) ? cleanBy("asymptotic") : null)}`;
+    $("k2s").textContent = "soonest (never slows) … latest (levels off)";
+    $("k3").textContent = (st.usedFrac * 100).toFixed(0) + "%"; $("k3s").textContent = `deepest pit ${st.deep.toFixed(0)} of ${corr.allowMils.toFixed(0)} mils (PF ${Number.isFinite(st.pfNow) ? st.pfNow.toFixed(1) : "–"})`;
+    $("k4").textContent = st.remainCycles; $("k4s").textContent = `≈ ${st.remainYr.toFixed(1)} yr more at ${fmtD(cycleDays)} cycles`;
+
+    // ---- insight
+    const dT = Math.abs(median(rows.slice(-5).map(r => r.two)) - median(rows.slice(0, 5).map(r => r.two)));
+    const ins = [];
+    ins.push(`<p>Over ${fmtD(today)} the controller has opened the CW valve as U fell from ${(1 / fit.models.falling.w0).toFixed(0)} to ${pts[pts.length - 1].U.toFixed(0)} W/m²K; CW flow went ${pts[0].mw.toFixed(1)} → ${pts[pts.length - 1].mw.toFixed(1)} kg/s and the CW outlet moved ${dT.toFixed(1)} °C. The valve tops out at ${H.wMax.toFixed(1)} kg/s.</p>`);
+    ins.push(`<p>The falling-rate prediction reaches that limit at <b>${fmtD(trig.falling.day)}</b> (cone ${fmtD(tHi.day)}–${fmtD(tLo.day)} at ${Math.round(conf * 100)} %). The bounds span <b>${fmtD(trig.linear.day)}</b> (fouling never slows) to <b>${fmtD(trig.asymptotic.day)}</b> (fouling levels off). The cone only covers scatter in your data; if the true behavior isn't falling-rate, the answer can sit anywhere between the bounds — more run time narrows both.</p>`);
+    if (cost.falling.interior && trig.falling.day !== null && cost.falling.opt.th > trig.falling.day)
+      ins.push(`<p>On cost alone the optimum run is ${fmtD(cost.falling.opt.th)} — after the valve saturates — because a slightly warm process outlet costs less than a cleaning at $${ec.dutyValue}/MWh. The tool recommends the saturation date because the loop loses control there; raise the lost-duty value if a warm outlet matters more.</p>`);
+    ins.push(`<p>The bundle has used <b>${(st.usedFrac * 100).toFixed(0)} %</b> of its pit margin (deepest pit ≈ ${st.pfNow ? st.pfNow.toFixed(1) : "–"}× the average penetration — pitting, not the average rate, sets tube life). At the predicted cycle that leaves about <b>${st.remainCycles} cleanings</b> (${st.remainYr.toFixed(1)} yr).${corr.perClean > 0 ? " Per-cleaning penetration is on, so cleaning more often shortens that." : ""}</p>`);
+    $("insight").innerHTML = ins.join("");
+
+    $("moc").innerHTML = E.mocChecks({ maxT: Math.max(...rows.map(r => r.tpi)), lsi: num("lsi"), chloride: num("cl") }, E.cwNeeded(1 / w0f, geo, b, op) / hyd.rho / geo.flowArea, corr, life, geo.area)
+      .map(c => `<div class="chk"><span class="st ${c.status}">${{ ok: "✓", warn: "!", fail: "✗", info: "i" }[c.status]}</span><b>${c.item}</b><span>${c.detail}</span></div>`).join("");
+  }
+
+  $("analyze").addEventListener("click", run);
+  $("demo").addEventListener("click", loadDemo);
+  document.addEventListener("change", e => {
+    if (e.target.matches("#upload, input[type=file]")) return;
+    if (e.target.matches("input, select")) run();
+  });
+  buildHeader(); addRows(20); loadDemo();
+})();
+</script>
+</body>
+</html>
