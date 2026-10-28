@@ -8,6 +8,10 @@ bundle have left?*
 > VS Code or any editor, and extend it for your own case with your AI assistant. This README is written for
 > both of you. Taking these tools further is a free service of
 > [Sharpes Process Engineering](https://jsharpes-portfolio.netlify.app); the site's Ask box can point you to the right starting file.
+>
+> **License:** [MIT](LICENSE) for the code and original text: use, modify and share freely, keeping the
+> copyright notice. Provided as is, without warranty of any kind. It is an engineering study aid, not a
+> substitute for a design checked and sealed by a licensed professional engineer.
 
 **Who this file is for:** the engineer using the tool, and that engineer's AI assistant. It is
 self-contained: hand it to an assistant together with your data and it has everything needed to

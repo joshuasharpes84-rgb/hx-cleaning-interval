@@ -356,7 +356,7 @@
           fit(); new ResizeObserver(fit).observe(doc.body);
         } catch (e) { /* not same-origin (opened from disk): keep the fixed height and let it scroll */ }
       });
-      f.src = f.dataset.src;
+      f.src = (f.dataset.srcVar && window[f.dataset.srcVar]) || f.dataset.src;   // e.g. the pump just sized above
     }
     row.addEventListener('toggle', load);
     load();
