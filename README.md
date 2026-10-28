@@ -4,6 +4,11 @@
 cleaning, how sure are we, what does that schedule cost, and how many cleanings does the tube
 bundle have left?*
 
+> **Make it yours, free:** download this repo (**Code → Download ZIP**, or `git clone`), open the folder in
+> VS Code or any editor, and extend it for your own case with your AI assistant. This README is written for
+> both of you. Taking these tools further is a free service of
+> [Sharpes Process Engineering](https://jsharpes-portfolio.netlify.app); the site's Ask box can point you to the right starting file.
+
 **Who this file is for:** the engineer using the tool, and that engineer's AI assistant. It is
 self-contained: hand it to an assistant together with your data and it has everything needed to
 check, challenge or adapt the method.

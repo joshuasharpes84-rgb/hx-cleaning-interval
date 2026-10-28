@@ -91,6 +91,71 @@
 
 <main><div class="container">
   <div id="msgs"></div>
+
+  <script>window.SRC_THUMB_BASE = '../../assets/source-thumbs/';</script>
+  <!-- Sources panel (portfolio rule 2026-10-27): kept in step with Cleaning Interval Tool\SOURCES.md; thumbnails = assets/source-thumbs/ from Not on Website/source_thumbs/build_source_thumbs.py -->
+  <div id="cic-srcwrap">
+  <style>
+  #cic-srcwrap{margin:0 0 16px}
+  #cic-srcwrap details.srcs{--sp-bg:var(--white);--sp-bg2:var(--bg);--sp-line:var(--border);--sp-muted:var(--muted);--sp-ink:var(--navy);--sp-acc:var(--blue);display:block;margin:0;padding:0;border:1px solid var(--sp-line);border-radius:8px;background:var(--sp-bg);box-shadow:none;text-align:left}
+  #cic-srcwrap details.srcs>summary{list-style:none;display:flex;align-items:center;gap:8px;cursor:pointer;margin:0;padding:8px 12px;background:none;border:0;border-radius:8px;box-shadow:none;position:static;font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--sp-muted);user-select:none}
+  #cic-srcwrap details.srcs>summary::-webkit-details-marker{display:none}
+  #cic-srcwrap details.srcs>summary::marker{content:""}
+  #cic-srcwrap details.srcs>summary::before{content:"\25B8";color:var(--sp-acc);width:12px}
+  #cic-srcwrap details.srcs[open]>summary::before{content:"\25BE"}
+  #cic-srcwrap details.srcs>summary:hover{background:none;color:var(--sp-acc)}
+  #cic-srcwrap details.srcs .srcnote{margin:0;padding:0 12px 8px;font-size:12px;line-height:1.45;color:var(--sp-muted);font-style:normal}
+  #cic-srcwrap details.srcs .srcgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px;margin:0;padding:0 12px 12px}
+  #cic-srcwrap details.srcs .src{display:grid;grid-template-columns:52px minmax(0,1fr);gap:10px;align-items:start;margin:0;padding:8px;background:var(--sp-bg);border:1px solid var(--sp-line);border-radius:6px;color:var(--sp-ink);text-decoration:none;box-shadow:none;transform:none}
+  #cic-srcwrap details.srcs a.src:hover{border-color:var(--sp-acc)}
+  #cic-srcwrap details.srcs .src img,#cic-srcwrap details.srcs .src .ico{display:block;width:52px;height:68px;margin:0;padding:0;object-fit:cover;object-position:top;border:1px solid var(--sp-line);border-radius:3px;background:var(--sp-bg2)}
+  #cic-srcwrap details.srcs .src img.wide,#cic-srcwrap details.srcs .src .ico.wide{height:30px}
+  #cic-srcwrap details.srcs .src .ico{display:grid;place-items:center;font-size:9px;font-weight:700;letter-spacing:.04em;color:var(--sp-muted)}
+  #cic-srcwrap details.srcs .src b{display:block;margin:0;font-size:13px;line-height:1.25;font-weight:600;color:var(--sp-ink)}
+  #cic-srcwrap details.srcs .src .w{display:block;margin:2px 0 0;font-size:11.5px;line-height:1.35;color:var(--sp-muted)}
+  #cic-srcwrap details.srcs .src .k{display:block;margin:0 0 2px;font-style:normal;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--sp-acc)}
+  #cic-srcwrap details.srcs .src .k.off{color:var(--sp-muted)}
+  @media (max-width:560px){#cic-srcwrap details.srcs .srcgrid{grid-template-columns:minmax(0,1fr)}}
+  </style>
+  <details class="srcs">
+    <summary>Sources behind this tool <span id="cic-srccount"></span></summary>
+    <p class="srcnote">Decks and tools open on this site in a new tab. Books, papers and methods are cited, not linked. Detail by topic: SOURCES.md in the Method &amp; code repo.</p>
+    <div class="srcgrid" id="cic-srcgrid"></div>
+  </details>
+  <script>
+  (function () {
+    var TH = window.SRC_THUMB_BASE || 'assets/source-thumbs/';
+    var SOURCES = [
+      ["incropera", "book", "Incropera et al., Fundamentals of Heat and Mass Transfer", "ε-NTU relation and its inversion for U(t) (Table 11.3/11.4, Eq. 11.30); Petukhov friction factor (Eq. 8.21)", null],
+      ["bott", "book", "Bott, Fouling of Heat Exchangers", "Fouling from the exchanger's own history; asymptotic model (Kern–Seaton / Taborek); Knudsen &amp; Story CaCO₃ demo data; CW fouling band; Langelier index; 6–12 month benchmark", null],
+      ["peters", "book", "Peters &amp; Timmerhaus, 5th ed., pp. 395–400", "Falling-rate scale law 1/U² = a·t + c (McCabe &amp; Robinson); cost-optimal run length (Eqs. 9-53 to 9-61)", null],
+      ["perry9", "book", "Perry's 9th ed.", "Fouling not predictable a priori (p. 11-22); CW valve capacity and equal-percentage characteristic (Sec. 8); pitting and corrosion-rate classes (Sec. 25)", null],
+      ["kern", "book", "Kern, Process Heat Transfer", "Return losses, four velocity heads per pass (p. 148); cleaning-interval benchmark", null],
+      ["uhlig", "book", "Uhlig, The Corrosion Handbook (1948)", "Carbon-steel corrosion in cooling water; pitting factor and its time and area dependence", null],
+      [null, "method", "Materials of Construction methodology", "Materials check panel (Steps 1–6)", null]
+    ];
+    var grid = document.getElementById('cic-srcgrid');
+    if (!grid) return;
+    document.getElementById('cic-srccount').textContent = '\u00b7 ' + SOURCES.length;
+    grid.innerHTML = SOURCES.map(function (s) {
+      var kind = s[1], wide = kind === 'deck' ? ' wide' : '';
+      var linkable = kind === 'deck' || kind === 'tool', url = linkable ? s[4] : null, off = linkable && !url;
+      var img = s[0] ? '<img src="' + TH + s[0] + '.jpg" alt="" loading="lazy" class="' + wide.trim() + '" data-kind="' + kind + '">'
+                     : '<span class="ico' + wide + '">' + kind.toUpperCase() + '</span>';
+      var inner = img + '<div><i class="k' + (off ? ' off' : '') + '">' + kind + (off ? ' \u00b7 not on the site yet' : '') + '</i><b>' +
+                  s[2] + (url ? ' \u2197' : '') + '</b><span class="w">' + s[3] + '</span></div>';
+      return url ? '<a class="src" href="' + url + '" target="_blank" rel="noopener">' + inner + '</a>' : '<div class="src">' + inner + '</div>';
+    }).join('');
+    Array.prototype.forEach.call(grid.querySelectorAll('img'), function (im) {
+      im.addEventListener('error', function () {
+        var sp = document.createElement('span'), k = im.getAttribute('data-kind');
+        sp.className = 'ico' + (k === 'deck' ? ' wide' : ''); sp.textContent = k.toUpperCase();
+        im.parentNode.replaceChild(sp, im);
+      });
+    });
+  })();
+  </script>
+  </div>
   <div class="kpis">
     <div class="kpi"><div class="k">Clean by (predicted)</div><div class="v" id="k1">–</div><div class="s" id="k1s"></div></div>
     <div class="kpi"><div class="k">Bounds (linear … asymptotic)</div><div class="v" id="k2">–</div><div class="s" id="k2s"></div></div>
