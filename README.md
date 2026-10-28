@@ -17,7 +17,7 @@ check, challenge or adapt the method.
 |---|---|
 | Files | `tools/cleaning-interval/index.html` (tool), `cleaning_engine.js` (all calculations, commented with sources), `lib/` (Chart.js, SheetJS — local, no CDN), `SOURCES.md` (sources by topic), `DECISIONS.md` (engineering calls) |
 | Status | v2, 2026-10-09. Screening (FEL) tool, not a design or inspection deliverable. |
-| Runs | Live at https://jsharpes-portfolio.netlify.app/tools/cleaning-interval/, or open `tools/cleaning-interval/index.html` in any browser, offline. Nothing is uploaded anywhere. |
+| Runs | Live at https://jsharpes-portfolio.netlify.app/#cleaning-tool, or open `tools/cleaning-interval/index.html` in any browser, offline. Nothing is uploaded anywhere. |
 
 ---
 
