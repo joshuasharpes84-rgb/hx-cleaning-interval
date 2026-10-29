@@ -352,8 +352,15 @@
       if (!row.open || f.getAttribute('src')) return;
       f.addEventListener('load', function () {
         try {
-          var doc = f.contentDocument, fit = function () { f.style.height = doc.documentElement.scrollHeight + 'px'; };
-          fit(); new ResizeObserver(fit).observe(doc.body);
+          // Size to the content, not documentElement.scrollHeight: scrollHeight never drops below the
+          // frame's own height, so the frame grew when a panel inside opened but never shrank when it
+          // closed (TEG: 17,600 px of blank space after collapsing its panels, 2026-10-29).
+          var doc = f.contentDocument, fit = function () {
+            var b = doc.body, mb = parseFloat(getComputedStyle(b).marginBottom) || 0;
+            var h = Math.max(doc.documentElement.getBoundingClientRect().height, b.getBoundingClientRect().bottom + mb);
+            f.style.height = Math.ceil(h) + 'px';
+          };
+          fit(); var ro = new ResizeObserver(fit); ro.observe(doc.body); ro.observe(doc.documentElement);
         } catch (e) { /* not same-origin (opened from disk): keep the fixed height and let it scroll */ }
       });
       f.src = (f.dataset.srcVar && window[f.dataset.srcVar]) || f.dataset.src;   // e.g. the pump just sized above
